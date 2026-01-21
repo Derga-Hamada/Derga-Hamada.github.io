@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hamada Derga | AI Security Specialist</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        /* --- CSS Variables --- */
+        :root {
+            --primary: #3b82f6;
+            --secondary: #6366f1;
+            --bg: #0b1121;
+            --surface: rgba(30, 41, 59, 0.7);
+            --text-main: #f1f5f9;
+            --text-sub: #cbd5e1;
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- Global Reset --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
+        body { background-color: var(--bg); color: var(--text-main); overflow-x: hidden; position: relative; }
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        ul { list-style: none; }
+
+        /* --- Background Layers --- */
+        #aurora-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none;
+        }
+        #spark-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999;
+        }
+
+        /* --- Utilities --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 2; }
+        .section-padding { padding: 6rem 0; }
+        .btn { padding: 0.8rem 2rem; background: var(--primary); color: white; border-radius: 50px; font-weight: 600; display: inline-block; border: none; cursor: pointer; }
+        .btn:hover { background: var(--secondary); transform: translateY(-2px); }
+        .section-header { text-align: center; margin-bottom: 4rem; }
+        .section-header h2 { font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem; }
+
+        /* --- Navigation --- */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: rgba(11, 17, 33, 0.8); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-content { display: flex; justify-content: space-between; align-items: center; height: 70px; }
+        .logo { font-weight: 700; font-size: 1.2rem; color: var(--primary); }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-sub); }
+        .nav-links a:hover { color: var(--primary); }
+
+        /* --- Hero Section --- */
+        .hero { min-height: 100vh; display: flex; align-items: center; padding-top: 80px; position: relative; }
+        .hero-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 4rem; align-items: center; }
+        .hero-text h1 { font-size: 3.5rem; line-height: 1.2; margin-bottom: 0.5rem; color: var(--primary); }
+        .hero-text h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: white; }
+        .tags { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .tag { 
+            background: rgba(30, 41, 59, 0.6); border: 1px solid var(--secondary); 
+            padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; color: #a5b4fc; 
+            backdrop-filter: blur(5px);
+        }
+
+        /* --- Pixel Card --- */
+        .pixel-card {
+            position: relative; width: 100%; max-width: 400px; aspect-ratio: 1/1;
+            border-radius: 30px; overflow: hidden; margin: 0 auto;
+            box-shadow: var(--shadow); border: 4px solid rgba(255,255,255,0.1);
+            background: transparent;
+        }
+        .pixel-card img { width: 100%; height: 100%; object-fit: cover; }
+        .pixel-card__layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .pixel-card__active {
+            background: rgba(11, 17, 33, 0.2); 
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; opacity: 0; pointer-events: none; z-index: 2;
+            backdrop-filter: blur(10px);
+        }
+        .pixel-card__pixels { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+        
+        /* --- البكسلات المتحركة --- */
+        .pixel { 
+            position: absolute; 
+            /* تم حذف اللون الثابت من هنا، سيتم تحديده عبر JS */
+            display: none;
+            backdrop-filter: blur(3px); /* زيادة الضبابية قليلاً لتأثير ضوئي أجمل */
+            mix-blend-mode: screen; /* يجعل الألوان تبدو كضوء */
+        }
+
+        /* --- Timeline --- */
+        .timeline-section { background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(10px); }
+        .timeline { position: relative; max-width: 900px; margin: 0 auto; }
+        .timeline::before { content: ''; position: absolute; left: 24px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+        .timeline-item { display: flex; gap: 2rem; margin-bottom: 3rem; position: relative; }
+        .timeline-icon {
+            width: 50px; height: 50px; border-radius: 50%; background: var(--bg);
+            border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center;
+            z-index: 1; flex-shrink: 0; color: var(--primary);
+        }
+        .timeline-content {
+            background: rgba(15, 23, 42, 0.6); padding: 1.5rem; border-radius: 15px; width: 100%;
+            border: 1px solid var(--border); backdrop-filter: blur(5px);
+        }
+
+        /* --- Placeholders --- */
+        .placeholder-box {
+            text-align: center; color: var(--text-sub); padding: 4rem 2rem;
+            border: 2px dashed var(--border); border-radius: 20px;
+            background: rgba(30, 41, 59, 0.2); backdrop-filter: blur(5px);
+        }
+        .placeholder-box h3 { font-size: 1.5rem; color: var(--text-main); margin-bottom: 1rem; }
+
+        /* --- Contact --- */
+        .contact-section { 
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.9) 100%); 
+            color: white; padding: 5rem 0 2rem 0; border-top: 1px solid var(--border);
+        }
+        .contact-box {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            padding: 2rem; border-radius: 12px; margin-bottom: 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .footer-links {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 3rem; margin-top: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero-grid { grid-template-columns: 1fr; text-align: center; }
+            .nav-links { display: none; }
+            .contact-box { flex-direction: column; gap: 1rem; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="aurora-container"></div>
+    <canvas id="spark-canvas"></canvas>
+
+    <nav>
+        <div class="container nav-content">
+            <div class="logo">Hamada Derga.</div>
+            <div class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#resume">Resume</a>
+                <a href="#portfolio">Portfolio</a>
+                <a href="#recommendations">Recommendations</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <section id="home" class="hero">
+        <div class="container hero-grid">
+            <div class="hero-text">
+                <h1>Hamada Derga</h1>
+                <h2>MSc Student & AI Security Specialist</h2>
+                <div class="tags">
+                    <span class="tag">Distributed Systems Engineer</span>
+                    <span class="tag">Web Developer</span>
+                    <span class="tag">Quantum Computing</span>
+                </div>
+                <p style="color: var(--text-sub); line-height: 1.8; margin-bottom: 2rem;">
+                    Master’s Researcher in ISIDS Focused on AI Security. Dedicated to building secure, scalable architectures using Python, Java, and C. Passionate about bridging the gap between rigorous cybersecurity foundations and modern machine learning innovations.
+                </p>
+                <div style="display: flex; gap: 1rem;">
+                    <a href="#contact" class="btn">Send a message</a>
+                    <a href="https://github.com/Derga-Hamada" target="_blank" class="btn" style="background: transparent; border: 2px solid var(--primary);"><i class="fab fa-github"></i> GitHub</a>
+                </div>
+            </div>
+            <div>
+                <div class="pixel-card" id="myPixelCard">
+                    <div class="pixel-card__layer pixel-card__default">
+                        <img src="Picsart_26-01-21_17-15-23-443.jpg" alt="Hamada Derga">
+                    </div>
+                    <div class="pixel-card__layer pixel-card__active">
+                        <h2 style="color: var(--primary); font-size: 2rem;">👋</h2>
+                        <h3 style="color: white; text-align: center; margin-top: 10px;">Welcome to my website !!!</h3>
+                    </div>
+                    <div class="pixel-card__pixels"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="resume" class="section-padding timeline-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>My Journey</h2>
+                <p>From passion to profession</p>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-icon"><i class="fas fa-university"></i></div>
+                    <div class="timeline-content">
+                        <span style="color: var(--primary); font-size: 0.8rem; font-weight: bold;">2022 - 2025</span>
+                        <h3>Batna 2 University</h3>
+                        <p style="color: var(--text-sub); margin-top: 0.5rem;">Studied Computer Science (ISIDS). Focus on Security Systems and foundational computing.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-icon"><i class="fas fa-brain"></i></div>
+                    <div class="timeline-content">
+                        <span style="color: var(--primary); font-size: 0.8rem; font-weight: bold;">Evolution</span>
+                        <h3>Discovering AI</h3>
+                        <p style="color: var(--text-sub); margin-top: 0.5rem;">Developed deep passion for AI and its intersection with secure systems.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="timeline-content">
+                        <span style="color: var(--primary); font-size: 0.8rem; font-weight: bold;">2025 - Present</span>
+                        <h3>AI Security Specialist</h3>
+                        <p style="color: var(--text-sub); margin-top: 0.5rem;">Specializing in securing distributed AI architectures and preventing adversarial attacks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="portfolio" class="section-padding">
+        <div class="container">
+            <div class="section-header">
+                <h2>Featured Projects</h2>
+                <p>Selected works in AI & Security</p>
+            </div>
+            <div class="placeholder-box">
+                <i class="fas fa-laptop-code" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3>Projects Coming Soon</h3>
+                <p>I'm currently curating my best work. Check back later!</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="recommendations" class="section-padding" style="background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(10px);">
+        <div class="container">
+            <div class="section-header">
+                <h2>Recommendations</h2>
+            </div>
+            <div class="placeholder-box">
+                <i class="fas fa-quote-left" style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                <h3>Testimonials Coming Soon</h3>
+                <p>Feedback from colleagues and mentors will be added here.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact" class="contact-section">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 4rem; background: rgba(255,255,255,0.05); padding: 3rem; border-radius: 20px; backdrop-filter: blur(5px);">
+                <h2 style="font-size: 2rem; margin-bottom: 1rem;">Ready to collaborate?</h2>
+                <p style="margin-bottom: 2rem; opacity: 0.8;">Let's discuss your next secure AI project</p>
+                <a href="mailto:hamadadarga05@gmail.com" class="btn" style="background: white; color: #0f172a;">Send a message</a>
+            </div>
+            <div class="contact-box">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <i class="fas fa-envelope" style="color: #60a5fa;"></i>
+                    <div>
+                        <small style="opacity: 0.6;">Email</small>
+                        <div>hamadadarga05@gmail.com</div>
+                    </div>
+                </div>
+                <a href="mailto:hamadadarga05@gmail.com" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Copy</a>
+            </div>
+            <div class="contact-box">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <i class="fab fa-linkedin" style="color: #60a5fa;"></i>
+                    <div>
+                        <small style="opacity: 0.6;">LinkedIn</small>
+                        <div>linkedin.com/in/hamada-derga</div>
+                    </div>
+                </div>
+                <a href="https://www.linkedin.com/in/hamada-derga/" target="_blank" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Visit</a>
+            </div>
+            <div class="contact-box">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <i class="fas fa-map-marker-alt" style="color: #60a5fa;"></i>
+                    <div>
+                        <small style="opacity: 0.6;">Location</small>
+                        <div>Batna, Algeria</div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-links">
+                <div>
+                    <h4>Hamada Derga</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.6;">
+                        Master’s Researcher in ISIDS Focused on AI Security. Dedicated to building secure, scalable architectures using Python, Java, and C. Passionate about bridging the gap between rigorous cybersecurity foundations and modern machine learning innovations.
+                    </p>
+                    <div style="margin-top: 1rem; font-size: 1.2rem;">
+                        <a href="https://www.linkedin.com/in/hamada-derga/" target="_blank" style="margin-right: 15px;"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://github.com/Derga-Hamada" target="_blank"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Navigation</h4>
+                    <a href="#home">Home</a>
+                    <a href="#resume">Resume</a>
+                    <a href="#portfolio">Portfolio</a>
+                    <a href="#recommendations">Recommendations</a>
+                </div>
+                <div>
+                    <h4>Contact</h4>
+                    <p>Batna, Algeria</p>
+                    <p>hamadadarga05@gmail.com</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 3rem; opacity: 0.4; font-size: 0.8rem;">
+                © 2026 Hamada Derga. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { Renderer, Program, Mesh, Color, Triangle } from 'https://unpkg.com/ogl@0.0.106/src/index.mjs';
+        const VERT = `#version 300 es
+        in vec2 position; void main() { gl_Position = vec4(position, 0.0, 1.0); }`;
+        const FRAG = `#version 300 es
+        precision highp float; uniform float uTime; uniform float uAmplitude; uniform vec3 uColorStops[3]; uniform vec2 uResolution; uniform float uBlend; out vec4 fragColor;
+        vec3 permute(vec3 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }
+        float snoise(vec2 v){ const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439); vec2 i = floor(v + dot(v, C.yy)); vec2 x0 = v - i + dot(i, C.xx); vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0); vec4 x12 = x0.xyxy + C.xxzz; x12.xy -= i1; i = mod(i, 289.0); vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0)); vec3 m = max(0.5 - vec3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0); m = m * m; m = m * m; vec3 x = 2.0 * fract(p * C.www) - 1.0; vec3 h = abs(x) - 0.5; vec3 ox = floor(x + 0.5); vec3 a0 = x - ox; m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h); vec3 g; g.x = a0.x * x0.x + h.x * x0.y; g.yz = a0.yz * x12.xz + h.yz * x12.yw; return 130.0 * dot(m, g); }
+        void main() { vec2 uv = gl_FragCoord.xy / uResolution; vec3 colors[3]; colors[0] = uColorStops[0]; colors[1] = uColorStops[1]; colors[2] = uColorStops[2]; vec3 rampColor = mix(colors[0], colors[1], smoothstep(0.0, 0.5, uv.x)); rampColor = mix(rampColor, colors[2], smoothstep(0.5, 1.0, uv.x)); float height = snoise(vec2(uv.x * 2.0 + uTime * 0.1, uTime * 0.25)) * 0.5 * uAmplitude; height = exp(height); height = (uv.y * 2.0 - height + 0.2); float intensity = 0.6 * height; float auroraAlpha = smoothstep(0.3 - uBlend * 0.5, 0.3 + uBlend * 0.5, intensity); fragColor = vec4(intensity * rampColor * auroraAlpha, auroraAlpha); }`;
+        function initAurora() { const ctn = document.getElementById('aurora-container'); const renderer = new Renderer({ alpha: true, premultipliedAlpha: true, antialias: true }); const gl = renderer.gl; gl.clearColor(0, 0, 0, 0); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); function resizeRenderer() { renderer.setSize(window.innerWidth, window.innerHeight); gl.canvas.style.width = '100%'; gl.canvas.style.height = '100%'; } resizeRenderer(); ctn.appendChild(gl.canvas); const geometry = new Triangle(gl); const colorStops = ['#3b82f6', '#10b981', '#6366f1'].map(hex => { const c = new Color(hex); return [c.r, c.g, c.b]; }); const program = new Program(gl, { vertex: VERT, fragment: FRAG, uniforms: { uTime: { value: 0 }, uAmplitude: { value: 1.2 }, uColorStops: { value: colorStops }, uResolution: { value: [gl.canvas.width, gl.canvas.height] }, uBlend: { value: 0.6 } } }); const mesh = new Mesh(gl, { geometry, program }); window.addEventListener('resize', () => { resizeRenderer(); program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height]; }); let time = 0; requestAnimationFrame(function update() { requestAnimationFrame(update); time += 0.005; program.uniforms.uTime.value = time; renderer.render({ scene: mesh }); }); } initAurora();
+    </script>
+    <script>
+        class SparkSystem { constructor() { this.canvas = document.getElementById('spark-canvas'); this.ctx = this.canvas.getContext('2d'); this.sparks = []; this.resize(); window.addEventListener('resize', () => this.resize()); document.addEventListener('click', (e) => this.addSparks(e.clientX, e.clientY)); this.animate(); } resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; } addSparks(x, y) { for(let i=0; i<8; i++) { this.sparks.push({ x, y, angle: (Math.PI*2*i)/8, startTime: performance.now() }); } } animate() { const now = performance.now(); this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); this.sparks = this.sparks.filter(spark => { const elapsed = now - spark.startTime; if (elapsed >= 400) return false; const progress = elapsed / 400; const ease = progress * (2 - progress); const radius = 15 + (10 * ease); const lineLen = 10 * (1 - ease); const x1 = spark.x + radius * Math.cos(spark.angle); const y1 = spark.y + radius * Math.sin(spark.angle); const x2 = spark.x + (radius + lineLen) * Math.cos(spark.angle); const y2 = spark.y + (radius + lineLen) * Math.sin(spark.angle); this.ctx.strokeStyle = '#ffffff'; this.ctx.lineWidth = 2; this.ctx.beginPath(); this.ctx.moveTo(x1, y1); this.ctx.lineTo(x2, y2); this.ctx.stroke(); return true; }); requestAnimationFrame(() => this.animate()); } } new SparkSystem();
+        
+        // --- PIXEL CARD LOGIC (UPDATED COLORS) ---
+        const card = document.getElementById('myPixelCard');
+        const pixelGrid = card.querySelector('.pixel-card__pixels');
+        const activeLayer = card.querySelector('.pixel-card__active');
+        const gridSize = 10;
+        const animDuration = 0.4;
+        
+        // ألوان الشفق لاستخدامها في البكسلات
+        const auroraColors = ['#3b82f6', '#10b981', '#6366f1'];
+
+        function createGrid() {
+            pixelGrid.innerHTML = '';
+            const size = 100 / gridSize;
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    const pixel = document.createElement('div');
+                    pixel.classList.add('pixel');
+                    
+                    // اختيار لون عشوائي من ألوان الشفق
+                    const randomColor = auroraColors[Math.floor(Math.random() * auroraColors.length)];
+                    pixel.style.backgroundColor = randomColor;
+                    // إضافة شفافية للبكسل ليمتزج مع الإضاءة
+                    pixel.style.opacity = '0.8';
+
+                    pixel.style.width = `${size}%`;
+                    pixel.style.height = `${size}%`;
+                    pixel.style.left = `${col * size}%`;
+                    pixel.style.top = `${row * size}%`;
+                    pixelGrid.appendChild(pixel);
+                }
+            }
+        }
+        createGrid();
+
+        let isActive = false; let isAnimating = false;
+        function animatePixels(activate) {
+            if (isAnimating) return;
+            isAnimating = true;
+            const pixels = pixelGrid.querySelectorAll('.pixel');
+            gsap.to(pixels, { display: 'block', duration: 0, stagger: { each: animDuration/(gridSize*gridSize), from: 'random' } });
+            setTimeout(() => {
+                activeLayer.style.opacity = activate ? '1' : '0';
+                activeLayer.style.pointerEvents = activate ? 'all' : 'none';
+            }, animDuration * 1000);
+            gsap.to(pixels, { display: 'none', duration: 0, delay: animDuration, stagger: { each: animDuration/(gridSize*gridSize), from: 'random' }, onComplete: () => { isActive = activate; isAnimating = false; } });
+        }
+        const isTouch = 'ontouchstart' in window;
+        if (!isTouch) {
+            card.addEventListener('mouseenter', () => !isActive && animatePixels(true));
+            card.addEventListener('mouseleave', () => isActive && animatePixels(false));
+        } else {
+            card.addEventListener('click', () => animatePixels(!isActive));
+        }
+    </script>
+</body>
+</html>
